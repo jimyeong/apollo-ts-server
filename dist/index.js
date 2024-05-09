@@ -5,9 +5,52 @@ import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@apollo/server/express4";
 import mongoose from "mongoose";
 import Friend from "./db/Friends.js";
+import Todo from "./db/Todos.js";
 import "dotenv/config";
 const app = express();
 const httpServer = http.createServer(app);
+const typeDefs = `#graphql
+    scalar GraphQLDateTime
+
+    input TodoInput {
+        id:ID
+        ownerId: Int
+        task: String
+        urgency: Int
+        importance: Int
+    }
+    type Todo {
+        id:ID
+        ownerId: Int
+        task: String
+        urgency: Int
+        importance: Int
+        createAt: GraphQLDateTime
+        updatedAt: GraphQLDateTime
+    }
+    type Mutation {
+        createTask(input: TodoInput ): Todo
+    }
+    type User {
+            firstName: String
+            lastName: String
+            tel: String
+            avatar: String
+            nationality: String
+            gender: Gender
+            description: String
+            email: String
+        }
+    type Query{
+        getUser : [User]!
+        getTodoTasks : [Todo]!
+    }
+    enum Gender{
+        MALE
+        FEMALE
+        OTHER
+    }
+`;
 const resolvers = {
     Query: {
         getUser: async () => {
@@ -21,40 +64,22 @@ const resolvers = {
                     rej(error);
                 }
             });
-            return [
-                {
-                    firstName: "JIMYEONG",
-                    lastName: "JUNG",
-                    tel: "+4407496927449",
-                    avatar: "",
-                    nationality: "korean",
-                    gender: "MALE",
-                    email: "idjjm92@gmail.com",
-                },
-            ];
+        },
+    },
+    Mutation: {
+        createTask: (root, { input }) => {
+            const { ownerId, task, urgency, importance } = input;
+            const newTodo = new Todo({ ownerId, task, urgency, importance });
+            newTodo.id = newTodo._id;
+            return new Promise((res, rej) => {
+                newTodo
+                    .save()
+                    .then((success) => res(success))
+                    .catch((fail) => rej(fail));
+            });
         },
     },
 };
-const typeDefs = `#graphql
-    type User {
-            firstName: String
-            lastName: String
-            tel: String
-            avatar: String
-            nationality: String
-            gender: Gender
-            description: String
-            email: String
-        }
-    type Query{
-        getUser : [User]!
-    }
-    enum Gender{
-        MALE
-        FEMALE
-        OTHER
-    }
-`;
 const apolloServer = new ApolloServer({ resolvers, typeDefs });
 await apolloServer.start();
 mongoose
