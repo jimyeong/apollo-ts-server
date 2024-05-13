@@ -44,7 +44,14 @@ const typeDefs = `#graphql
         }
     type Query{
         getUser : [User]!
-        getTodoTasks : [Todo]!
+        getTodoList : [Todo]!
+        addTodos: Todo
+        deleteTodo: Todo
+        editTodo: Todo
+        addUser: User
+        deleteUser: User
+        editUser: User
+
     }
     enum Gender{
         MALE
@@ -54,10 +61,20 @@ const typeDefs = `#graphql
 `;
 const resolvers = {
     Query: {
+        getTodoList: async () => {
+            return new Promise(async (res, rej) => {
+                try {
+                    const todos = await Todo.find();
+                    res(todos);
+                }
+                catch (err) {
+                    rej(err);
+                }
+            });
+        },
         getUser: async () => {
             return new Promise(async (res, rej) => {
                 try {
-                    // const friends = await Friend.find();
                     const friends = await Friend.aggregate([
                         {
                             $lookup: {
@@ -68,7 +85,6 @@ const resolvers = {
                             },
                         },
                     ]).exec();
-                    console.log("@@freiends: ", friends);
                     res(friends);
                 }
                 catch (error) {
