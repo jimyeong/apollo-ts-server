@@ -40,6 +40,7 @@ const typeDefs = `#graphql
             gender: Gender
             description: String
             email: String
+            todos:[Todo]!
         }
     type Query{
         getUser : [User]!
@@ -56,8 +57,18 @@ const resolvers = {
         getUser: async () => {
             return new Promise(async (res, rej) => {
                 try {
-                    const friends = await Friend.find();
-                    console.log("@@friends", friends);
+                    // const friends = await Friend.find();
+                    const friends = await Friend.aggregate([
+                        {
+                            $lookup: {
+                                from: "todos",
+                                localField: "userId",
+                                foreignField: "ownerId",
+                                as: "todos",
+                            },
+                        },
+                    ]).exec();
+                    console.log("@@freiends: ", friends);
                     res(friends);
                 }
                 catch (error) {

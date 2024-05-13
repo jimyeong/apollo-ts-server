@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 export const todoScheme = new mongoose.Schema(
   {
     ownerId: {
-      type: String,
+      type: Number,
     },
     task: {
       type: String,
