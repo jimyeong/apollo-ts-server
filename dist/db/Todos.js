@@ -3,6 +3,9 @@ export const todoScheme = new mongoose.Schema({
     ownerId: {
         type: Number,
     },
+    taskId: {
+        type: Number,
+    },
     task: {
         type: String,
     },

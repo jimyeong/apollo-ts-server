@@ -29,9 +29,12 @@ const typeDefs = `#graphql
         importance: Int
         createAt: GraphQLDateTime
         updatedAt: GraphQLDateTime
+        taskId: Int
     }
     type Mutation {
         createTask(input: TodoInput ): Todo
+        removeTask(id: ID): Todo
+        updateTask(input: TodoInput): Todo
     }
     type User {
             firstName: String
@@ -47,13 +50,6 @@ const typeDefs = `#graphql
     type Query{
         getUser : [User]!
         getTodoList : [Todo]!
-        addTodos: Todo
-        deleteTodo: Todo
-        editTodo: Todo
-        addUser: User
-        deleteUser: User
-        editUser: User
-
     }
     enum Gender{
         MALE
@@ -95,6 +91,43 @@ const resolvers = {
     },
   },
   Mutation: {
+    updateTask: (root, { input }) => {
+      console.log("@@what is this", root);
+      const { id, task, urgency, importance } = input;
+      console.log("@@", id, task);
+      return new Promise(async (res, rej) => {
+        const filter = {
+          _id: id,
+        };
+        const update = {
+          task,
+          urgency,
+          importance,
+        };
+        try {
+          const updated = await Todo.findOneAndUpdate(filter, update);
+          console.log("@@@@updated??", updated);
+          res(updated);
+        } catch (error) {
+          rej(error);
+        }
+      });
+    },
+    removeTask: (root, { taskId, id }) => {
+      return new Promise(async (res, rej) => {
+        try {
+          const filter = {
+            _id: id,
+          };
+          // const removedItem = Todo.find({ where: {taskId: taskId} });
+          const deletedItem = await Todo.findOneAndDelete(filter);
+          console.log("@@ has it been found? ", deletedItem);
+          res(deletedItem);
+        } catch (err) {
+          rej(err);
+        }
+      });
+    },
     createTask: (root, { input }) => {
       const { ownerId, task, urgency, importance } = input;
       const newTodo = new Todo({ ownerId, task, urgency, importance });
