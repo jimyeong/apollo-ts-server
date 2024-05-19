@@ -50,6 +50,7 @@ const typeDefs = `#graphql
     type Query{
         getUser : [User]!
         getTodoList : [Todo]!
+        searchUsers(keyword: String):[User]!
     }
     enum Gender{
         MALE
@@ -67,6 +68,20 @@ const resolvers = {
           res(todos);
         } catch (err) {
           rej(err);
+        }
+      });
+    },
+    searchUsers: async (root, { keyword }) => {
+      console.log("@@@kleyword", keyword);
+      return new Promise(async (res, rej) => {
+        if (!keyword) res([]);
+        try {
+          const friends = await Friend.find({
+            firstName: { $regex: keyword, $options: "i" },
+          });
+          res(friends);
+        } catch (error) {
+          rej(error);
         }
       });
     },
